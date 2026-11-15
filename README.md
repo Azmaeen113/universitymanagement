@@ -26,7 +26,7 @@ mvn test
 ## Tests and CI
 
 - 6 unit tests (`src/test/java/.../unit`, JUnit + Mockito, no Spring) and 3 end-to-end integration tests
-  (`EndToEndIntegrationTest`), plus the existing integration test suite.
+  (`EndToEndIntegrationTest`). Run them with `mvn test`.
 - GitHub Actions (`.github/workflows/ci.yml`) runs the unit tests, then the integration tests on every
   push and pull request.
 

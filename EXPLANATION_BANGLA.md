@@ -817,7 +817,7 @@ void teacherCannotUpdateAnotherTeacher() throws Exception {
 }
 ```
 - Test-এ **H2** (memory database) ব্যবহার করেছি, তাই MySQL ছাড়াই test চলে। (`src/test/resources/application-test.properties`)
-- মোট **৮১টি test** (৭২টি আগের integration test + ৬টি unit test + ৩টি নতুন integration test), সব pass। চালাতে: `mvn test`
+- এখন প্রজেক্টে মোট **৯টি test** (৬টি unit + ৩টি integration), সব pass। চালাতে: `mvn test`। (নিচের টেবিলের আগের test গুলো `old-tests/` ফোল্ডারে আছে, শুধু নিজের PC-তে, git ও CI-তে নেই।)
 - নতুন ৯টি test এর বিস্তারিত ও GitHub Actions: নিচে **১৫ নম্বর অংশ**।
 
 ---
@@ -1005,7 +1005,7 @@ git push -u origin main
 4. `SecurityConfig` + `CustomUserDetailsService` → login ও role।
 5. Live demo: `docker compose up --build` → Admin দিয়ে login → Pending list → Approve → Teacher দিয়ে login → অন্য teacher edit করতে গেলে 403।
 6. API demo: curl/Postman।
-7. `mvn test` চালিয়ে ৮১টি pass দেখাও, তারপর GitHub-এর **Actions** ট্যাবে সবুজ ✅ দেখাও।
+7. `mvn test` চালিয়ে ৯টি pass দেখাও, তারপর GitHub-এর **Actions** ট্যাবে সবুজ ✅ দেখাও।
 8. `Dockerfile` ও `compose.yaml` ব্যাখ্যা।
 
 > **টিপ:** Demo-র আগে একবার `docker compose up --build` দিয়ে দেখে নাও (প্রথমবার ইন্টারনেট লাগবে — Maven library ও MySQL image download হবে)।

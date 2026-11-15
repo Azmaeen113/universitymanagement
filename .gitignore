@@ -2,3 +2,6 @@ target/
 .idea/
 .vscode/
 *.iml
+
+# older test suite kept locally only (not part of the 9 tests)
+old-tests/
