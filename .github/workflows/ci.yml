@@ -1,9 +1,18 @@
 name: CI
 
-# Runs on every push (any branch) and on every pull request
+# Runs when code is pushed to main, dev, any dev/* or feature/* branch,
+# and on pull requests that target main or dev
 on:
   push:
+    branches:
+      - main
+      - dev
+      - 'dev/**'
+      - 'feature/**'
   pull_request:
+    branches:
+      - main
+      - dev
 
 permissions:
   contents: read
