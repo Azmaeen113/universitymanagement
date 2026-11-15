@@ -1,0 +1,39 @@
+name: CI
+
+# Runs on every push (any branch) and on every pull request
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      # 6 unit tests: plain JUnit + Mockito, no Spring, no database
+      - name: Unit tests
+        run: mvn -B test -Dtest='com.university.management.unit.*Test'
+
+      # 3 new integration tests + the existing integration tests (Spring Boot + MockMvc + H2 database)
+      - name: Integration tests
+        run: mvn -B test -Dtest='!com.university.management.unit.*Test'
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: target/surefire-reports

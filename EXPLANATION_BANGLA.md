@@ -817,7 +817,8 @@ void teacherCannotUpdateAnotherTeacher() throws Exception {
 }
 ```
 - Test-এ **H2** (memory database) ব্যবহার করেছি, তাই MySQL ছাড়াই test চলে। (`src/test/resources/application-test.properties`)
-- মোট **৭২টি test**, সব pass। চালাতে: `mvn test`
+- মোট **৮১টি test** (৭২টি আগের integration test + ৬টি unit test + ৩টি নতুন integration test), সব pass। চালাতে: `mvn test`
+- নতুন ৯টি test এর বিস্তারিত ও GitHub Actions: নিচে **১৫ নম্বর অংশ**।
 
 ---
 
@@ -872,7 +873,131 @@ Login হলে server session বানায়, browser cookie (`JSESSIONID`)
 
 ---
 
-## ১৫. প্রেজেন্টেশনের ক্রম (সাজেস্টেড)
+## ১৫. Unit test, Integration test ও GitHub Actions (CI)
+
+### ১৫.১ Unit test আর Integration test-এর পার্থক্য (স্যারকে এভাবে বলো)
+- **Unit test** = একটা ছোট অংশ (একটা class) আলাদা করে test। বাকি সব (database, password encoder) **Mockito** দিয়ে নকল (mock)। Spring চালু হয় না, তাই **খুব দ্রুত** (মিলিসেকেন্ড)।
+- **Integration test** = অনেক অংশ **একসাথে** test: Spring Boot চালু, Security, Controller, Service, Database (H2) সব আসল। ধীর, কিন্তু আসল অবস্থার কাছাকাছি।
+
+### ১৫.২ ৬টি Unit test — ফোল্ডার: `src/test/java/com/university/management/unit/`
+
+| # | ফাইল | Test method | কী প্রমাণ করে |
+|---|---|---|---|
+| 1 | `StudentServiceTest` | `studentCreatedByAdminIsApprovedAndPasswordIsHashed` | Admin student বানালে `approved=true`, password hash হয়, email lowercase হয় |
+| 2 | `StudentServiceTest` | `studentCreatedByTeacherIsPendingApproval` | Teacher বানালে `approved=false` (approval workflow) |
+| 3 | `StudentServiceTest` | `studentCannotUpdateAnotherStudentsProfile` | অন্যের profile বদলাতে গেলে `AccessDeniedException`, আর `save()` কখনো ডাকা হয় না |
+| 4 | `TeacherServiceTest` | `teacherCannotDeleteAnotherTeacherButAdminCan` | অন্য Teacher delete করতে পারে না, Admin পারে |
+| 5 | `EmailCheckerTest` | `emailUsedInStudentsTableIsRejected` | email অন্য table-এ থাকলে `DuplicateResourceException` (cross-table uniqueness) |
+| 6 | `CustomUserDetailsServiceTest` | `unapprovedStudentIsFoundWithStudentRoleButDisabled` | pending student-এর role `ROLE_STUDENT` কিন্তু `isEnabled() == false` |
+
+**Mockito কোড দেখাও** (`StudentServiceTest.java`):
+```java
+@ExtendWith(MockitoExtension.class)          // Mockito চালু করে
+class StudentServiceTest {
+
+    @Mock private StudentRepository studentRepository;   // নকল repository, আসল database নেই
+    @Mock private EmailChecker emailChecker;
+    @Mock private PasswordEncoder passwordEncoder;
+    @InjectMocks private StudentService studentService;  // আসল service, ভেতরে mock বসানো
+
+    @Test
+    void studentCannotUpdateAnotherStudentsProfile() {
+        Student other = new Student();
+        other.setEmail("other@test.com");
+        when(studentRepository.findById(5L)).thenReturn(Optional.of(other));  // "findById ডাকলে এটা দাও"
+        Authentication me = new TestingAuthenticationToken("me@test.com", "pw", "ROLE_STUDENT");
+
+        assertThrows(AccessDeniedException.class, () -> studentService.update(5L, request(), me));
+
+        verify(studentRepository, never()).save(any());       // save() ডাকা হয়নি — নিশ্চিত
+    }
+}
+```
+- `@Mock` = নকল object। `@InjectMocks` = যে class test করছি তার ভেতরে mock গুলো বসায়।
+- `when(...).thenReturn(...)` = mock-কে বলি কী উত্তর দেবে। `verify(..., never())` = নির্দিষ্ট method ডাকা হয়নি কিনা দেখে।
+- `TestingAuthenticationToken` = login করা user-এর নকল (নাম + role)।
+
+### ১৫.৩ ৩টি Integration test — ফাইল: `src/test/java/com/university/management/EndToEndIntegrationTest.java`
+প্রতিটা test একটা **পুরো গল্প** test করে (একটা URL না):
+
+| # | Test method | গল্প |
+|---|---|---|
+| 1 | `teacherRegistersStudentAdminApprovesThenStudentCanLogIn` | Teacher API-তে student register করে → student login করতে গিয়ে **pending** বার্তা পায় → Admin pending page-এ দেখে ও approve করে → এখন student login করে `/student/dashboard`-এ যায় |
+| 2 | `sessionKeepsUserLoggedInUntilLogout` | সত্যিকারের login → session cookie দিয়ে dashboard খোলে → কিন্তু `/admin/dashboard` এ **403** → logout করলে session শেষ |
+| 3 | `studentWhoChangesOwnEmailIsLoggedOutAndMustUseNewEmail` | Student নিজের email বদলায় → logout হয়ে `/login?emailChanged` → পুরনো email-এ login **fail**, নতুন email-এ **সফল** |
+
+```java
+class EndToEndIntegrationTest extends BaseIntegrationTest {   // BaseIntegrationTest = H2 database + test data
+
+    @Test
+    void sessionKeepsUserLoggedInUntilLogout() throws Exception {
+        MockHttpSession session = sessionOf(login(TEACHER1_EMAIL, PASSWORD)...);
+
+        mockMvc.perform(get("/teacher/dashboard").session(session))    // শুধু session cookie
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/admin/dashboard").session(session))
+                .andExpect(status().isForbidden());                      // role ঠিক না → 403
+        ...
+        assertThat(session.isInvalid()).isTrue();                        // logout-এর পর session শেষ
+    }
+}
+```
+- `@SpringBootTest` (BaseIntegrationTest-এ) = পুরো application চালু। `MockMvc` = browser ছাড়াই HTTP request পাঠায়।
+- আগের test গুলো `user("...")` শর্টকাট দিয়ে "login করা" ভান করত; এই নতুন test গুলো **আসল login + আসল session** ব্যবহার করে।
+
+### ১৫.৪ GitHub Actions (CI) — ফাইল: `.github/workflows/ci.yml`
+**CI (Continuous Integration) কী?** কেউ কোড push করলেই GitHub-এর server নিজে থেকে কোড নামিয়ে build করে ও সব test চালায়। কোনো test fail করলে সাথে সাথে লাল ❌ — ভাঙা কোড কেউ খেয়াল না করে merge করতে পারে না।
+
+```yaml
+name: CI
+on:
+  push:            # যেকোনো branch-এ push করলে
+  pull_request:    # এবং প্রতিটা Pull Request-এ
+
+jobs:
+  test:
+    runs-on: ubuntu-latest            # GitHub-এর Linux machine
+    steps:
+      - uses: actions/checkout@v4     # কোড নামাও
+      - uses: actions/setup-java@v4   # Java 17 (Temurin) + Maven cache
+        with: { distribution: temurin, java-version: '17', cache: maven }
+
+      - name: Unit tests              # ৬টি unit test
+        run: mvn -B test -Dtest='com.university.management.unit.*Test'
+
+      - name: Integration tests       # ৩টি নতুন + আগের integration test
+        run: mvn -B test -Dtest='!com.university.management.unit.*Test'
+
+      - uses: actions/upload-artifact@v4   # test report জমা রাখো (fail হলেও)
+        if: always()
+        with: { name: surefire-reports, path: target/surefire-reports }
+```
+- `on: push / pull_request` → trigger। `runs-on` → কোন machine। `steps` → একটার পর একটা কাজ।
+- `-Dtest='...'` → Maven-কে বলে কোন test চালাবে। `!` মানে "এগুলো বাদে"।
+- `mvn -B` = batch mode (CI-এর জন্য পরিষ্কার log)।
+- Test-এ **H2 in-memory database** ব্যবহার হয়, তাই CI-তে MySQL বসাতে হয় না।
+- দেখবে কোথায়: GitHub repo → **Actions** ট্যাব → সর্বশেষ run → সবুজ ✅।
+
+### ১৫.৫ GitHub-এ push করা
+```bash
+git init -b main
+git add -A
+git commit -m "Initial commit: University Management System"
+git remote add origin https://github.com/Azmaeen113/universitymanagement.git
+git push -u origin main
+```
+- Commit-এর author **Azmaeen113** (তোমার GitHub account), তাই Contributors-এ শুধু তোমার নামই আসে।
+- `.gitignore`-এ `target/` আছে, তাই build-এর ফাইল push হয় না।
+
+### স্যার জিজ্ঞেস করতে পারে
+- **Mock কেন?** যাতে শুধু ওই class-এর logic test হয়; database বা অন্য class ভুল করলে এই test fail না করে। আর দ্রুত চলে।
+- **Unit test আর integration test দুটোই কেন?** Unit test দ্রুত ও নির্দিষ্টভাবে ভুল ধরে; integration test প্রমাণ করে অংশ গুলো একসাথে ঠিকঠাক কাজ করছে (Security + Controller + Service + DB)।
+- **CI কেন?** প্রতিবার হাতে test চালাতে ভুলে যেতে পারি; CI নিজে চালায়, তাই কোড সবসময় সচল থাকে।
+- **Test-এ MySQL লাগে না কেন?** H2 in-memory database ব্যবহার (`application-test.properties`)।
+
+---
+
+## ১৬. প্রেজেন্টেশনের ক্রম (সাজেস্টেড)
 
 1. `context.md` → requirement বলো।
 2. `pom.xml` → dependency (Lombok, JPA, Security, Thymeleaf…)।
@@ -880,7 +1005,7 @@ Login হলে server session বানায়, browser cookie (`JSESSIONID`)
 4. `SecurityConfig` + `CustomUserDetailsService` → login ও role।
 5. Live demo: `docker compose up --build` → Admin দিয়ে login → Pending list → Approve → Teacher দিয়ে login → অন্য teacher edit করতে গেলে 403।
 6. API demo: curl/Postman।
-7. `mvn test` চালিয়ে ৭২টি pass দেখাও।
+7. `mvn test` চালিয়ে ৮১টি pass দেখাও, তারপর GitHub-এর **Actions** ট্যাবে সবুজ ✅ দেখাও।
 8. `Dockerfile` ও `compose.yaml` ব্যাখ্যা।
 
 > **টিপ:** Demo-র আগে একবার `docker compose up --build` দিয়ে দেখে নাও (প্রথমবার ইন্টারনেট লাগবে — Maven library ও MySQL image download হবে)।
