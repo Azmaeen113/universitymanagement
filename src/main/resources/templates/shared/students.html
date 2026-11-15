@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Students')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<!--
+  One students list for all three roles. The controller sends:
+    basePath      - where edit/delete links go (null = nobody can edit here)
+    isAdmin       - admin can edit every row
+    currentEmail  - everybody else can edit only the row with his/her own email
+-->
+<main class="container my-4">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="m-0">Students</h2>
+        <a th:if="${canAdd}" th:with="addLink=${addUrl != null ? addUrl : basePath + '/new'}"
+           th:href="@{${addLink}}" class="btn btn-primary">+ Add Student</a>
+    </div>
+
+    <div class="table-responsive card card-body">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+            <tr>
+                <th>Roll No</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Department</th>
+                <th>Semester</th>
+                <th>Status</th>
+                <th th:if="${basePath != null}">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="s : ${students}">
+                <td th:text="${s.rollNumber}">CSE-001</td>
+                <td th:text="${s.fullName}">Name</td>
+                <td th:text="${s.email}">email</td>
+                <td th:text="${s.department}">Dept</td>
+                <td th:text="${s.semester}">1</td>
+                <td>
+                    <span th:if="${s.approved}" class="badge bg-success">Approved</span>
+                    <span th:unless="${s.approved}" class="badge bg-warning text-dark">Pending</span>
+                </td>
+                <td th:if="${basePath != null}">
+                    <div th:if="${isAdmin or #strings.equalsIgnoreCase(s.email, currentEmail)}" class="d-flex gap-2">
+                        <a th:href="@{${basePath + '/' + s.id + '/edit'}}" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <form th:action="@{${basePath + '/' + s.id + '/delete'}}" method="post"
+                              onsubmit="return confirm('Delete this student?');" class="m-0">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(students)}">
+                <td colspan="7" class="text-center text-muted">No students found.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

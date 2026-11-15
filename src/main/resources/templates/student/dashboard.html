@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Student Dashboard')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container my-4">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <h2 class="mb-4">Welcome, <span th:text="${student.fullName}">Student</span></h2>
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">My Profile</div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><strong>Name:</strong> <span th:text="${student.fullName}"></span></li>
+                    <li class="list-group-item"><strong>Email:</strong> <span th:text="${student.email}"></span></li>
+                    <li class="list-group-item"><strong>Roll number:</strong> <span th:text="${student.rollNumber}"></span></li>
+                    <li class="list-group-item"><strong>Department:</strong> <span th:text="${student.department}"></span></li>
+                    <li class="list-group-item"><strong>Semester:</strong> <span th:text="${student.semester}"></span></li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Quick Links</div>
+                <div class="list-group list-group-flush">
+                    <a class="list-group-item list-group-item-action" th:href="@{/student/students}">Student Directory</a>
+                    <a class="list-group-item list-group-item-action" th:href="@{/student/students/{id}/edit(id=${student.id})}">Edit My Profile</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

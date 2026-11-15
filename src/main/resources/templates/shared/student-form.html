@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Student Form')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container my-4" style="max-width: 640px;">
+    <h2 class="mb-3" th:text="${title}">Add Student</h2>
+
+    <!-- shown only on the teacher's "Register Student" page -->
+    <div th:if="${notice}" class="alert alert-warning" th:text="${notice}"></div>
+
+    <div class="card card-body">
+        <form th:action="@{${formAction}}" th:object="${form}" method="post" novalidate>
+            <div class="mb-3">
+                <label class="form-label" for="fullName">Full name</label>
+                <input type="text" id="fullName" th:field="*{fullName}" class="form-control" th:errorclass="is-invalid">
+                <div class="invalid-feedback" th:errors="*{fullName}"></div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="email">Email</label>
+                <input type="email" id="email" th:field="*{email}" class="form-control" th:errorclass="is-invalid">
+                <div class="invalid-feedback" th:errors="*{email}"></div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="password">
+                    Password <span th:unless="${isNew}" class="text-muted small">(leave empty to keep the old one)</span>
+                </label>
+                <input type="password" id="password" th:field="*{password}" class="form-control" th:errorclass="is-invalid">
+                <div class="invalid-feedback" th:errors="*{password}"></div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="department">Department</label>
+                <input type="text" id="department" th:field="*{department}" class="form-control" th:errorclass="is-invalid">
+                <div class="invalid-feedback" th:errors="*{department}"></div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label" for="semester">Semester</label>
+                    <input type="number" id="semester" th:field="*{semester}" class="form-control" th:errorclass="is-invalid">
+                    <div class="invalid-feedback" th:errors="*{semester}"></div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label" for="rollNumber">Roll number</label>
+                    <input type="text" id="rollNumber" th:field="*{rollNumber}" class="form-control" th:errorclass="is-invalid">
+                    <div class="invalid-feedback" th:errors="*{rollNumber}"></div>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Save</button>
+            <a th:href="@{${backUrl}}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</main>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

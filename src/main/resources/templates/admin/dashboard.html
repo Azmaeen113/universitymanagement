@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Admin Dashboard')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container my-4">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <h2 class="mb-4">Admin Dashboard</h2>
+
+    <div class="row g-3">
+        <div class="col-md-3 col-sm-6">
+            <div class="card stat-card"><div class="card-body">
+                <div class="text-muted">Admins</div>
+                <div class="stat-number" th:text="${adminCount}">0</div>
+                <a th:href="@{/admin/admins}">Manage</a>
+            </div></div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card stat-card"><div class="card-body">
+                <div class="text-muted">Teachers</div>
+                <div class="stat-number" th:text="${teacherCount}">0</div>
+                <a th:href="@{/admin/teachers}">Manage</a>
+            </div></div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card stat-card"><div class="card-body">
+                <div class="text-muted">Students</div>
+                <div class="stat-number" th:text="${studentCount}">0</div>
+                <a th:href="@{/admin/students}">Manage</a>
+            </div></div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card stat-card" style="border-left-color: #ffc107;"><div class="card-body">
+                <div class="text-muted">Pending Approvals</div>
+                <div class="stat-number">
+                    <span class="badge bg-warning text-dark" th:text="${pendingCount}">0</span>
+                </div>
+                <a th:href="@{/admin/students/pending}">Review</a>
+            </div></div>
+        </div>
+    </div>
+</main>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

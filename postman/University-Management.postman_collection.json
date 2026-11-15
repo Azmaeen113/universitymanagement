@@ -1,0 +1,244 @@
+{
+  "info": {
+    "_postman_id": "d4c2b9c9-7ad1-4f4d-a7a2-7f86d0f9f101",
+    "name": "University Management System",
+    "description": "Demo requests for authentication, role authorization, CRUD, ownership and student approval.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "studentId", "value": "1" },
+    { "key": "teacherId", "value": "1" },
+    { "key": "pendingStudentId", "value": "4" }
+  ],
+  "item": [
+    {
+      "name": "1 - Authentication and authorization",
+      "item": [
+        {
+          "name": "No authentication - should return 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/students"
+          }
+        },
+        {
+          "name": "Teacher reads students - should return 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "basic",
+              "basic": [
+                { "key": "username", "value": "{{teacherEmail}}", "type": "string" },
+                { "key": "password", "value": "{{teacherPassword}}", "type": "string" }
+              ]
+            },
+            "url": "{{baseUrl}}/api/students"
+          }
+        },
+        {
+          "name": "Teacher reads admins - should return 403",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "basic",
+              "basic": [
+                { "key": "username", "value": "{{teacherEmail}}", "type": "string" },
+                { "key": "password", "value": "{{teacherPassword}}", "type": "string" }
+              ]
+            },
+            "url": "{{baseUrl}}/api/admins"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2 - Admin operations",
+      "item": [
+        {
+          "name": "Admin reads all users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "basic",
+              "basic": [
+                { "key": "username", "value": "{{adminEmail}}", "type": "string" },
+                { "key": "password", "value": "{{adminPassword}}", "type": "string" }
+              ]
+            },
+            "url": "{{baseUrl}}/api/students"
+          }
+        },
+        {
+          "name": "Admin creates a teacher",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "auth": {
+              "type": "basic",
+              "basic": [
+                { "key": "username", "value": "{{adminEmail}}", "type": "string" },
+                { "key": "password", "value": "{{adminPassword}}", "type": "string" }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Postman Demo Teacher\",\n  \"email\": \"postman.teacher@example.com\",\n  \"password\": \"teacher123\",\n  \"department\": \"Computer Science\",\n  \"designation\": \"Lecturer\"\n}"
+            },
+            "url": "{{baseUrl}}/api/teachers"
+          }
+        },
+        {
+          "name": "Admin creates an approved student",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "auth": {
+              "type": "basic",
+              "basic": [
+                { "key": "username", "value": "{{adminEmail}}", "type": "string" },
+                { "key": "password", "value": "{{adminPassword}}", "type": "string" }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Postman Demo Student\",\n  \"email\": \"postman.student@example.com\",\n  \"password\": \"student123\",\n  \"department\": \"Computer Science\",\n  \"semester\": 1,\n  \"rollNumber\": \"CSE-POSTMAN-001\"\n}"
+            },
+            "url": "{{baseUrl}}/api/students"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3 - Teacher registers pending student",
+      "item": [
+        {
+          "name": "Teacher registers a student - approved is false",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "auth": {
+              "type": "basic",
+              "basic": [
+                { "key": "username", "value": "{{teacherEmail}}", "type": "string" },
+                { "key": "password", "value": "{{teacherPassword}}", "type": "string" }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Pending Postman Student\",\n  \"email\": \"pending.postman@example.com\",\n  \"password\": \"student123\",\n  \"department\": \"Electrical Engineering\",\n  \"semester\": 2,\n  \"rollNumber\": \"EEE-POSTMAN-001\"\n}"
+            },
+            "url": "{{baseUrl}}/api/students"
+          }
+        },
+        {
+          "name": "Teacher tries to approve - should return 403",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "auth": {
+              "type": "basic",
+              "basic": [
+                { "key": "username", "value": "{{teacherEmail}}", "type": "string" },
+                { "key": "password", "value": "{{teacherPassword}}", "type": "string" }
+              ]
+            },
+            "url": "{{baseUrl}}/api/students/{{pendingStudentId}}/approve"
+          }
+        }
+      ]
+    },
+    {
+      "name": "4 - Student approval",
+      "item": [
+        {
+          "name": "Admin approves pending student",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "auth": {
+              "type": "basic",
+              "basic": [
+                { "key": "username", "value": "{{adminEmail}}", "type": "string" },
+                { "key": "password", "value": "{{adminPassword}}", "type": "string" }
+              ]
+            },
+            "url": "{{baseUrl}}/api/students/{{pendingStudentId}}/approve"
+          }
+        },
+        {
+          "name": "Get one student",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "basic",
+              "basic": [
+                { "key": "username", "value": "{{adminEmail}}", "type": "string" },
+                { "key": "password", "value": "{{adminPassword}}", "type": "string" }
+              ]
+            },
+            "url": "{{baseUrl}}/api/students/{{studentId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "5 - Validation and duplicate handling",
+      "item": [
+        {
+          "name": "Invalid student - should return 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "auth": {
+              "type": "basic",
+              "basic": [
+                { "key": "username", "value": "{{adminEmail}}", "type": "string" },
+                { "key": "password", "value": "{{adminPassword}}", "type": "string" }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"\",\n  \"email\": \"not-an-email\",\n  \"password\": \"123\",\n  \"department\": \"\",\n  \"semester\": 99,\n  \"rollNumber\": \"\"\n}"
+            },
+            "url": "{{baseUrl}}/api/students"
+          }
+        },
+        {
+          "name": "Duplicate email - should return 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "auth": {
+              "type": "basic",
+              "basic": [
+                { "key": "username", "value": "{{adminEmail}}", "type": "string" },
+                { "key": "password", "value": "{{adminPassword}}", "type": "string" }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Duplicate Demo\",\n  \"email\": \"ayesha.rahman@student.edu\",\n  \"password\": \"student123\",\n  \"department\": \"Computer Science\",\n  \"semester\": 1,\n  \"rollNumber\": \"CSE-DUPLICATE-001\"\n}"
+            },
+            "url": "{{baseUrl}}/api/students"
+          }
+        }
+      ]
+    }
+  ]
+}

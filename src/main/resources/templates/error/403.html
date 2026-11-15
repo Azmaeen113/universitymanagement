@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Access Denied')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<main class="container my-5 text-center">
+    <h1 class="display-4">403</h1>
+    <p class="lead">Access denied. You do not have permission to do this.</p>
+    <a class="btn btn-primary" th:href="@{/}">Back to home</a>
+</main>
+</body>
+</html>

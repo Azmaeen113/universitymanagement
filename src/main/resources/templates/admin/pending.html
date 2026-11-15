@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Pending Approvals')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container my-4">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <h2 class="mb-3">
+        Pending Approvals
+        <span class="badge bg-warning text-dark" th:text="${#lists.size(students)}">0</span>
+    </h2>
+
+    <div class="table-responsive card card-body">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+            <tr><th>Roll No</th><th>Name</th><th>Email</th><th>Department</th><th>Semester</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="s : ${students}">
+                <td th:text="${s.rollNumber}">roll</td>
+                <td th:text="${s.fullName}">Name</td>
+                <td th:text="${s.email}">email</td>
+                <td th:text="${s.department}">Dept</td>
+                <td th:text="${s.semester}">1</td>
+                <td>
+                    <div class="d-flex gap-2">
+                        <form th:action="@{/admin/students/{id}/approve(id=${s.id})}" method="post" class="m-0">
+                            <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                        </form>
+                        <form th:action="@{/admin/students/{id}/reject(id=${s.id})}" method="post"
+                              onsubmit="return confirm('Reject and delete this student?');" class="m-0">
+                            <button type="submit" class="btn btn-sm btn-danger">Reject</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(students)}">
+                <td colspan="6" class="text-center text-muted">No students are waiting for approval.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

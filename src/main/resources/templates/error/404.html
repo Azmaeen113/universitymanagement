@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Not Found')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<main class="container my-5 text-center">
+    <h1 class="display-4">404</h1>
+    <p class="lead">The page or record you asked for was not found.</p>
+    <a class="btn btn-primary" th:href="@{/}">Back to home</a>
+</main>
+</body>
+</html>

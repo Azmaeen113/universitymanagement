@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Teachers')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<!-- Used by Admin (edit everything) and Teacher (edit only own row) -->
+<main class="container my-4">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="m-0">Teachers</h2>
+        <a th:if="${canAdd}" th:href="@{${basePath + '/new'}}" class="btn btn-primary">+ Add Teacher</a>
+    </div>
+
+    <div class="table-responsive card card-body">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Department</th>
+                <th>Designation</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="t : ${teachers}">
+                <td th:text="${t.fullName}">Name</td>
+                <td th:text="${t.email}">email</td>
+                <td th:text="${t.department}">Dept</td>
+                <td th:text="${t.designation}">Designation</td>
+                <td>
+                    <div th:if="${isAdmin or #strings.equalsIgnoreCase(t.email, currentEmail)}" class="d-flex gap-2">
+                        <a th:href="@{${basePath + '/' + t.id + '/edit'}}" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <form th:action="@{${basePath + '/' + t.id + '/delete'}}" method="post"
+                              onsubmit="return confirm('Delete this teacher?');" class="m-0">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                        </form>
+                    </div>
+                    <span th:unless="${isAdmin or #strings.equalsIgnoreCase(t.email, currentEmail)}"
+                          class="text-muted small">view only</span>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(teachers)}">
+                <td colspan="5" class="text-center text-muted">No teachers found.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

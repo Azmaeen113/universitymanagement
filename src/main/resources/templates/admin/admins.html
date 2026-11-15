@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Admins')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container my-4">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="m-0">Admins</h2>
+        <a th:href="@{/admin/admins/new}" class="btn btn-primary">+ Add Admin</a>
+    </div>
+
+    <div class="table-responsive card card-body">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+            <tr><th>ID</th><th>Name</th><th>Email</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="a : ${admins}">
+                <td th:text="${a.id}">1</td>
+                <td th:text="${a.fullName}">Name</td>
+                <td th:text="${a.email}">email</td>
+                <td>
+                    <div class="d-flex gap-2">
+                        <a th:href="@{/admin/admins/{id}/edit(id=${a.id})}" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <form th:action="@{/admin/admins/{id}/delete(id=${a.id})}" method="post"
+                              onsubmit="return confirm('Delete this admin?');" class="m-0">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

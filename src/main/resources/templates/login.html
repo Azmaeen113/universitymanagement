@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Login')}"></head>
+<body>
+
+<div class="container login-box">
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+            <h3 class="text-center mb-4">University Login</h3>
+
+            <!-- ?error  ?pending  ?logout  ?emailChanged  ?deleted  are set by the handlers in SecurityConfig -->
+            <div th:if="${param.error}" class="alert alert-danger">Invalid email or password.</div>
+            <div th:if="${param.pending}" class="alert alert-warning">Your account is pending admin approval.</div>
+            <div th:if="${param.logout}" class="alert alert-info">You have been logged out.</div>
+            <div th:if="${param.emailChanged}" class="alert alert-info">Your email was changed. Please log in again.</div>
+            <div th:if="${param.deleted}" class="alert alert-info">Your account was deleted.</div>
+
+            <!-- th:action adds the hidden CSRF token automatically -->
+            <form th:action="@{/login}" method="post">
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" required autofocus>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="password" name="password" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Login</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
